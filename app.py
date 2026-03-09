@@ -54,15 +54,19 @@ def generate_qr_code(data):
     return base64_string
 
 
-data=get_local_ip()
-qr_base64=generate_qr_code(data)
+
 
 
 #routes for the application
 @app.route("/")
 def hello_world():
+    data="http://"+get_local_ip()+":5000/connect"
+    qr_base64=generate_qr_code(data)
     return render_template('index.html',qr_code_img=qr_base64)
 
+@app.route("/connect")
+def connect():
+    return "Device connected successfully!"
 
 
 if __name__ == '__main__':
