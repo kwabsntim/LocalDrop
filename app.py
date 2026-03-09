@@ -5,6 +5,9 @@ import io
 import base64
 
 
+#this variable determines if the phone is connected or not
+phone_connected=False
+
 app = Flask(__name__)
 
 #user functions 
@@ -64,10 +67,17 @@ def hello_world():
     qr_base64=generate_qr_code(data)
     return render_template('index.html',qr_code_img=qr_base64)
 
+#this route is to determine a phone connection
 @app.route("/connect")
 def connect():
-    return "Device connected successfully!"
+    global phone_connected
+    phone_connected=True
+    return render_template('connect.html')
 
+#the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
+@app.route("/status")
+def status():
+    return render_template('status.html',phone_connected=phone_connected)
 
 if __name__ == '__main__':
     app.run(debug=True,port=5000,host='0.0.0.0')

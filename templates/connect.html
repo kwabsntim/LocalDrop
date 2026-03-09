@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/htmx.org@latest"></script>
+</head>
+<body>
+     <h1>Device connected successfully!</h1>
+     <p>Send file</p>
+     <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+     </form>
+
+     <p>Send a link</p>
+     <form action="/send_link" method="post">
+        <input type="text" name="link" placeholder="Enter URL">
+        <input type="submit" value="Send">
+     </form>
+</body>
+</html>

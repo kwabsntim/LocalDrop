@@ -7,12 +7,15 @@
 </head>
 <!--This is the main template -->
 <body>
+    <!--addtion of htmx polling to the site-->
+        <div hx-get="/status" hx-trigger="every 2s"></div>
+        <!---Navigation bar-->
         <nav>
             <div class="logo">LocalDrop</div>
         </nav>
 
         <div class="content">
-            <p>Scan the Qr Code to connet to device</p>
+            <p>Scan the QR Code to connet to device</p>
             <div class="qr-code" id="qr-container">
                 <img src="data:image/png;base64,{{ qr_code_img }}">
             </div>
