@@ -77,7 +77,10 @@ def connect():
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
 @app.route("/status")
 def status():
-    return render_template('status.html',phone_connected=phone_connected)
+    if phone_connected==False:
+        return '',204
+    if phone_connected==True:
+        return render_template('status.html',phone_connected=phone_connected)
 
 if __name__ == '__main__':
     app.run(debug=True,port=5000,host='0.0.0.0')
