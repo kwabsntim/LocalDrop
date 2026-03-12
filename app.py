@@ -1,15 +1,23 @@
-from flask import Flask, render_template
+from flask import Flask, render_template,redirect,request,flash,url_for
+from werkzeug.utils import secure_filename
 import socket 
 import qrcode
 import io
 import base64
+import os
 
 
 #this variable determines if the phone is connected or not
 phone_connected=False
 
-app = Flask(__name__)
 
+#file upload logic 
+UPLOAD_FOLDER='uploads'
+
+ALLOWED_EXTENSIONS={'txt','pdf','png','jpg','jpeg','gif'}
+app = Flask(__name__)
+app.secret_key='LocalDrop'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #user functions 
 def get_local_ip():
     '''
@@ -56,7 +64,11 @@ def generate_qr_code(data):
     base64_string=base64_bytes.decode('utf-8')
     return base64_string
 
-
+def allowed_file(filename):
+    '''
+    Check if the uploaded file has an allowed extension.
+    '''
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
@@ -81,6 +93,22 @@ def status():
         return '',204
     if phone_connected==True:
         return render_template('status.html',phone_connected=phone_connected)
+    
 
+
+@app.route("/upload",methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file=request.files['file']
+    if file.filename=='':
+        flash('No selected file')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename=secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+        flash('File uploaded successfully')
+        return "File Uploaded Successfuly"
 if __name__ == '__main__':
     app.run(debug=True,port=5000,host='0.0.0.0')
