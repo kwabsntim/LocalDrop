@@ -1,0 +1,22 @@
+
+    <h3>Links</h3>
+    {% if links %}
+        <ul>
+        {% for link in links %}
+            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No links received yet.</p>
+    {% endif %}
+
+    <h3>Files</h3>
+    {% if files %}
+        <ul>
+        {% for file in files %}
+            <li>{{ file }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No files received yet.</p>
+    {% endif %}

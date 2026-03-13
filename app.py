@@ -10,6 +10,9 @@ import os
 #this variable determines if the phone is connected or not
 phone_connected=False
 
+Recieved_links=[]
+
+
 
 #file upload logic 
 UPLOAD_FOLDER='uploads'
@@ -75,7 +78,7 @@ def allowed_file(filename):
 #routes for the application
 @app.route("/")
 def hello_world():
-    data="http://"+get_local_ip()+":5000/connect"
+    data="http://"+get_local_ip()+":3030/connect"
     qr_base64=generate_qr_code(data)
     return render_template('index.html',qr_code_img=qr_base64)
 
@@ -91,8 +94,8 @@ def connect():
 def status():
     if phone_connected==False:
         return '',204
-    if phone_connected==True:
-        return render_template('status.html',phone_connected=phone_connected)
+    files=os.listdir(app.config['UPLOAD_FOLDER'])    
+    return render_template('status.html',phone_connected=phone_connected,links=Recieved_links,files=files)
     
 
 
@@ -109,6 +112,26 @@ def upload_file():
         filename=secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
         flash('File uploaded successfully')
-        return "File Uploaded Successfuly"
+    
+    return "File Uploaded Successfuly"
+
+
+@app.route("/send_link",methods=['POST'])
+def send_link():
+    if 'link' not in request.form:
+        flash('No link provided')
+        return redirect(request.url)
+    link = request.form['link']
+    global Recieved_links
+    Recieved_links.append(link)
+    return "Link sent successfully"
+
+
+@app.route("/updates_status")
+def update_status():
+    if phone_connected==False:
+        return '',204
+    files=os.listdir(app.config['UPLOAD_FOLDER'])    
+    return render_template('updates.html',phone_connected=phone_connected,links=Recieved_links,files=files)
 if __name__ == '__main__':
-    app.run(debug=True,port=5000,host='0.0.0.0')
+    app.run(debug=False,port=3030,host='0.0.0.0')

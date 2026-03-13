@@ -1,6 +1,15 @@
 {% if phone_connected %}
     <h1>Phone is connected!</h1>
     <p>You can now send files and links to your phone.</p>
+
+    <div hx-get="/updates_status" hx-trigger="every 1s" hx-target="#received_items"hx-swap="innerHTML"></div>
+    <div id="received_items">
+        <!--This is where all the received items will be displayed-->
+        <h2>Received Items</h2>
+    </div>
+   
 {% else %}
+    <h1>Phone is not connected</h1>
+    <p>Please connect your phone to see the status.</p>
 
 {% endif %}
