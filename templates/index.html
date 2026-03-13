@@ -1,31 +1,33 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>LocalDrop</title>
     <script src="https://unpkg.com/htmx.org@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <!--This is the main template -->
 <body> 
-   
+    <div class="app-container">
         <!---Navigation bar-->
-        <nav>
+        <nav class="top-nav">
             <div class="logo">LocalDrop</div>
         </nav>
-         <!--addtion of htmx polling to the site-->
-        <div hx-get="/status" hx-trigger="every 2s" hx-target="#main-content"hx-swap="outerHTML"></div>
-        <div class="content">
-            
-            <div id="main-content">
-                <p>Scan the QR Code to connect a device</p>
-                <div class="qr-code" id="qr-container">
-                    <img src="data:image/png;base64,{{ qr_code_img }}">
+
+        <main class="page-center">
+            <div class="content">
+                <!--addtion of htmx polling to the site-->
+                <div hx-get="/status" hx-trigger="every 2s" hx-target="#main-content"hx-swap="outerHTML"></div>
+                <div id="main-content">
+                    <p>Scan the QR Code to connect a device</p>
+                    <div class="qr-code" id="qr-container">
+                        <img src="data:image/png;base64,{{ qr_code_img }}">
+                    </div>
                 </div>
             </div>
-           
-         
-        </div>
-
+        </main>
+    </div>
 
 </body>
 </html>
