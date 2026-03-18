@@ -1,4 +1,4 @@
-from flask import Flask, render_template,redirect,request,flash,url_for
+from flask import Flask, render_template,redirect,request,flash,url_for,send_from_directory
 from werkzeug.utils import secure_filename
 import socket 
 import qrcode
@@ -17,7 +17,7 @@ Recieved_links=[]
 #file upload logic 
 UPLOAD_FOLDER='uploads'
 
-ALLOWED_EXTENSIONS={'txt','pdf','png','jpg','jpeg','gif'}
+ALLOWED_EXTENSIONS={'txt','pdf','png','jpg','jpeg','gif','docx','pptx','xlsx','csv','zip','rar'}
 app = Flask(__name__)
 app.secret_key='LocalDrop'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -80,7 +80,8 @@ def allowed_file(filename):
 def hello_world():
     data="http://"+get_local_ip()+":3030/connect"
     qr_base64=generate_qr_code(data)
-    return render_template('index.html',qr_code_img=qr_base64)
+    files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
+    return render_template('index.html',qr_code_img=qr_base64,files=files)
 
 #this route is to determine a phone connection
 @app.route("/connect")
@@ -133,5 +134,10 @@ def update_status():
         return '',204
     files=os.listdir(app.config['UPLOAD_FOLDER'])    
     return render_template('updates.html',phone_connected=phone_connected,links=Recieved_links,files=files)
+
+@app.route("/uploads/<filename>")
+def serve_upload(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+
 if __name__ == '__main__':
-    app.run(debug=False,port=3030,host='0.0.0.0')
+    app.run(debug=False,port=5500,host='0.0.0.0')

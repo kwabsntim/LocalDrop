@@ -13,7 +13,45 @@
         <!---Navigation bar-->
         <nav class="top-nav">
             <div class="logo">LocalDrop</div>
+            <button class="recent-files-btn" onclick="toggleSidebar()">Recent Files</button>
         </nav>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Recent Files</h3>
+                <button class="close-btn" onclick="toggleSidebar()">x</button>
+            </div>
+            <div class="sidebar-content">
+                {% if files %}
+                    <div class="file-grid">
+                        {% for file in files %}
+                            {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                            {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
+                            <div class="file-grid-item">
+                                {% if ext in image_extensions %}
+                                    <img src="/uploads/{{ file }}" alt="{{ file }}" class="grid-image">
+                                {% elif ext == 'pdf' %}
+                                    <div class="file-icon pdf-icon">PDF</div>
+                                {% elif ext in ['xlsx', 'xls'] %}
+                                    <div class="file-icon excel-icon">XLS</div>
+                                {% elif ext in ['docx', 'doc'] %}
+                                    <div class="file-icon word-icon">DOC</div>
+                                {% elif ext == 'pptx' %}
+                                    <div class="file-icon pptx-icon">PPT</div>
+                                {% else %}
+                                    <div class="file-icon">{{ ext or 'FILE' }}</div>
+                                {% endif %}
+                                <div class="file-name">{{ file }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="file-item" style="color: #666; padding: 20px; text-align: center;">No files yet</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
         <main class="page-center">
             <div class="content">
@@ -27,7 +65,19 @@
                 </div>
             </div>
         </main>
+
+        <footer class="footer">
+            <p>Copyright 2026 - created by kwabsntim</p>
+        </footer>
     </div>
 
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    </script>
 </body>
 </html>
