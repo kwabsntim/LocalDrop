@@ -6,6 +6,7 @@ import io
 import base64
 import os
 import time
+from config import config
 
 
 #this variable determines if the phone is connected or not
@@ -15,15 +16,14 @@ CONNECTION_TIMEOUT=300  # 5 minutes
 
 Recieved_links=[]
 
+#importing the config file
 
+env=os.getenv('FLASK_ENV','development')
+app_config=config[env]
 
-#file upload logic 
-UPLOAD_FOLDER='uploads'
-
-ALLOWED_EXTENSIONS={'txt','pdf','png','jpg','jpeg','gif','docx','pptx','xlsx','csv','zip','rar'}
 app = Flask(__name__)
+app.config.from_object(app_config)
 app.secret_key='LocalDrop'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #user functions 
 def get_local_ip():
     '''
@@ -74,14 +74,14 @@ def allowed_file(filename):
     '''
     Check if the uploaded file has an allowed extension.
     '''
-    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
 
 #routes for the application
 @app.route("/")
 def hello_world():
-    data="http://"+get_local_ip()+":3030/connect"
+    data="http://"+get_local_ip()+":"+str(app_config.PORT)+"/connect"
     qr_base64=generate_qr_code(data)
     files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
     return render_template('index.html',qr_code_img=qr_base64,files=files)
@@ -93,7 +93,8 @@ def connect():
     global phone_connected, connection_time
     phone_connected=True
     connection_time=time.time()
-    return render_template('connect.html')
+    files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
+    return render_template('connect.html', files=files)
 
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
 @app.route("/status")
@@ -108,7 +109,7 @@ def status():
     
     if phone_connected==False:
         # Generate fresh QR code for polling
-        data="http://"+get_local_ip()+":3030/connect"
+        data="http://"+get_local_ip()+":"+str(app_config.PORT)+"/connect"
         qr_base64=generate_qr_code(data)
         return f'''<div id="main-content">
                     <p style="color: white; text-align: center; font-size: 1.2rem; margin-bottom: 20px;">Scan the QR Code to connect a device</p>
@@ -116,7 +117,8 @@ def status():
                 </div>'''
     
     files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
-    return render_template('status.html',phone_connected=phone_connected,links=Recieved_links,files=files)
+    # Return only the content to be swapped by HTMX, not a full page
+    return render_template('status_content.html',phone_connected=phone_connected,links=Recieved_links,files=files)
     
 
 
@@ -134,7 +136,7 @@ def upload_file():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
         flash('File uploaded successfully')
     
-    return "File Uploaded Successfuly"
+    return redirect('/status')
 
 
 @app.route("/send_link",methods=['POST'])
@@ -145,7 +147,7 @@ def send_link():
     link = request.form['link']
     global Recieved_links
     Recieved_links.append(link)
-    return "Link sent successfully"
+    return redirect('/status')
 
 
 @app.route("/updates_status")
@@ -160,4 +162,4 @@ def serve_upload(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 if __name__ == '__main__':
-    app.run(debug=False,port=3030,host='0.0.0.0')
+    app.run(debug=app_config.DEBUG, port=app_config.PORT, host=app_config.HOST)

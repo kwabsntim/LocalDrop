@@ -13,13 +13,12 @@
         <!---Navigation bar-->
         <nav class="top-nav">
             <div class="logo">LocalDrop</div>
-            <button class="recent-files-btn" onclick="toggleSidebar()">Recent Files</button>
         </nav>
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3>Recent Files</h3>
-                <button class="close-btn" onclick="toggleSidebar()">x</button>
+                <button class="close-btn mobile-only" onclick="toggleSidebar()">x</button>
             </div>
             <div class="sidebar-content">
                 {% if files %}

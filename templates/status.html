@@ -1,15 +1,355 @@
-{% if phone_connected %}
-    <h1>Phone is connected!</h1>
-    <p>You can now send files and links to your phone.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalDrop - Connected</title>
+    <script src="https://unpkg.com/htmx.org@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .status-page-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
 
-    <div hx-get="/updates_status" hx-trigger="every 1s" hx-target="#received_items"hx-swap="innerHTML"></div>
-    <div id="received_items">
-        <!--This is where all the received items will be displayed-->
-        <h2>Received Items</h2>
+        .status-sidebar {
+            width: 280px;
+            height: 100%;
+            background-color: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .status-sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #333;
+        }
+
+        .status-sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .status-sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .status-file-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .status-file-grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: #252525;
+            border-radius: 8px;
+            padding: 8px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            min-height: 100px;
+        }
+
+        .status-file-grid-item:hover {
+            background-color: #2a2a2a;
+            transform: scale(1.05);
+        }
+
+        .status-grid-image {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .status-file-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .status-pdf-icon {
+            background-color: #2a1a1a;
+            color: #f44236;
+        }
+
+        .status-excel-icon {
+            background-color: #1a2a1a;
+            color: #4caf50;
+        }
+
+        .status-word-icon {
+            background-color: #1a1f2a;
+            color: #2196f3;
+        }
+
+        .status-pptx-icon {
+            background-color: #2a1a1f;
+            color: #ff9800;
+        }
+
+        .status-file-name {
+            font-size: 0.85rem;
+            text-align: center;
+            color: #bbb;
+            word-break: break-word;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .status-main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .status-center-wrapper {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .status-header-card {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-header-card h1 {
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            color: #4caf50;
+        }
+
+        .status-text {
+            color: #999;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .status-form-section {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 25px 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-form-group {
+            margin-bottom: 20px;
+        }
+
+        .status-form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-form-group p {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: white;
+        }
+
+        .status-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-form input[type="file"],
+        .status-form input[type="text"] {
+            padding: 12px 14px;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 6px;
+            color: #1a1a1a;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .status-form input[type="file"]:focus,
+        .status-form input[type="text"]:focus {
+            outline: none;
+            border-color: #555;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .status-form input[type="file"]::file-selector-button {
+            background-color: #333;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .status-form input[type="file"]::file-selector-button:hover {
+            background-color: #444;
+        }
+
+        .status-form input[type="submit"] {
+            padding: 12px 16px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-form input[type="submit"]:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-form input[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .status-empty-state {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .status-page-wrapper {
+                flex-direction: column;
+            }
+
+            .status-sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+                display: none;
+            }
+
+            .status-sidebar.open {
+                display: flex;
+            }
+
+            .status-main-content {
+                padding: 20px;
+            }
+
+            .status-center-wrapper {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-page-wrapper">
+        {% if phone_connected %}
+            <!-- Sidebar - Desktop Only -->
+            <div class="status-sidebar" id="status-sidebar">
+                <div class="status-sidebar-header">
+                    <h3>Recent Files</h3>
+                </div>
+                <div class="status-sidebar-content">
+                    {% if files %}
+                        <div class="status-file-grid">
+                            {% for file in files %}
+                                {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
+                                <div class="status-file-grid-item" onclick="downloadFile('{{ file }}')">
+                                    {% if ext in image_extensions %}
+                                        <img src="/uploads/{{ file }}" alt="{{ file }}" class="status-grid-image">
+                                    {% elif ext == 'pdf' %}
+                                        <div class="status-file-icon status-pdf-icon">PDF</div>
+                                    {% elif ext in ['xlsx', 'xls'] %}
+                                        <div class="status-file-icon status-excel-icon">XLS</div>
+                                    {% elif ext in ['docx', 'doc'] %}
+                                        <div class="status-file-icon status-word-icon">DOC</div>
+                                    {% elif ext == 'pptx' %}
+                                        <div class="status-file-icon status-pptx-icon">PPT</div>
+                                    {% else %}
+                                        <div class="status-file-icon">{{ ext.upper() or 'FILE' }}</div>
+                                    {% endif %}
+                                    <div class="status-file-name">{{ file }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="status-empty-state">No files yet</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Main Content - Center -->
+            <div class="status-main-content">
+                <div class="status-center-wrapper">
+                    <div class="status-header-card">
+                        <h1>✓ Device Connected</h1>
+                        <p class="status-text">Ready to transfer files</p>
+                    </div>
+                    
+                    <div class="status-form-section">
+                        <div class="status-form-group">
+                            <p>📤 Send File</p>
+                            <form class="status-form" action="/upload" method="post" enctype="multipart/form-data">
+                                <input type="file" name="file" required>
+                                <input type="submit" value="Upload">
+                            </form>
+                        </div>
+
+                        <div class="status-form-group">
+                            <p>🔗 Send Link</p>
+                            <form class="status-form" action="/send_link" method="post">
+                                <input type="text" name="link" placeholder="Enter URL" required>
+                                <input type="submit" value="Send">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="status-main-content">
+                <div class="status-center-wrapper">
+                    <div class="status-header-card">
+                        <h1>Not Connected</h1>
+                        <p class="status-text">Scan QR code to connect</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
-   
-{% else %}
-    <h1>Phone is not connected</h1>
-    <p>Please connect your phone to see the status.</p>
-
-{% endif %}
+    
+    <script>
+        function downloadFile(filename) {
+            window.location.href = '/uploads/' + filename;
+        }
+    </script>
+</body>
+</html>

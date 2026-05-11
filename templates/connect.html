@@ -15,30 +15,49 @@
             color: white;
             font-family: Arial, sans-serif;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
 
-        .container {
+        .phone-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header-card {
             background-color: #1a1a1a;
             border-radius: 12px;
-            padding: 40px;
-            max-width: 450px;
-            width: 100%;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            text-align: center;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
         h1 {
-            text-align: center;
             font-size: 1.8rem;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             color: #fff;
         }
 
+        .status-text {
+            color: #4caf50;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-section {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
         .form-group {
-            margin-bottom: 28px;
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
         }
 
         .form-group p {
@@ -109,27 +128,166 @@
         input[type="submit"]:active {
             transform: translateY(0);
         }
+
+        .files-section {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .files-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .file-grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: #252525;
+            border-radius: 8px;
+            padding: 10px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            min-height: 110px;
+        }
+
+        .file-grid-item:hover {
+            background-color: #2a2a2a;
+            transform: scale(1.05);
+        }
+
+        .grid-image {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .pdf-icon {
+            background-color: #2a1a1a;
+            color: #f44236;
+        }
+
+        .excel-icon {
+            background-color: #1a2a1a;
+            color: #4caf50;
+        }
+
+        .word-icon {
+            background-color: #1a1f2a;
+            color: #2196f3;
+        }
+
+        .pptx-icon {
+            background-color: #2a1a1f;
+            color: #ff9800;
+        }
+
+        .file-name {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #aaa;
+            word-break: break-word;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 30px 20px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Device Connected!</h1>
+    <div class="phone-container">
+        <div class="header-card">
+            <h1>✓ Device Connected</h1>
+            <p class="status-text">Ready to transfer files</p>
+        </div>
         
-        <div class="form-group">
-            <p>Send File</p>
-            <form action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" required>
-                <input type="submit" value="Upload">
-            </form>
+        <div class="form-section">
+            <div class="form-group">
+                <p>📤 Send File</p>
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" required>
+                    <input type="submit" value="Upload">
+                </form>
+            </div>
+
+            <div class="form-group">
+                <p>🔗 Send Link</p>
+                <form action="/send_link" method="post">
+                    <input type="text" name="link" placeholder="Enter URL" required>
+                    <input type="submit" value="Send">
+                </form>
+            </div>
         </div>
 
-        <div class="form-group">
-            <p>Send Link</p>
-            <form action="/send_link" method="post">
-                <input type="text" name="link" placeholder="Enter URL" required>
-                <input type="submit" value="Send">
-            </form>
+        <div class="files-section">
+            <div class="files-title">📁 Received Files</div>
+            {% if files %}
+                <div class="file-grid">
+                    {% for file in files %}
+                        {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                        {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
+                        <div class="file-grid-item" onclick="downloadFile('{{ file }}')">
+                            {% if ext in image_extensions %}
+                                <img src="/uploads/{{ file }}" alt="{{ file }}" class="grid-image">
+                            {% elif ext == 'pdf' %}
+                                <div class="file-icon pdf-icon">PDF</div>
+                            {% elif ext in ['xlsx', 'xls'] %}
+                                <div class="file-icon excel-icon">XLS</div>
+                            {% elif ext in ['docx', 'doc'] %}
+                                <div class="file-icon word-icon">DOC</div>
+                            {% elif ext == 'pptx' %}
+                                <div class="file-icon pptx-icon">PPT</div>
+                            {% else %}
+                                <div class="file-icon">{{ ext.upper() or 'FILE' }}</div>
+                            {% endif %}
+                            <div class="file-name">{{ file }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No files received yet. Send files from desktop to see them here.</div>
+            {% endif %}
         </div>
     </div>
+    
+    <script>
+        function downloadFile(filename) {
+            window.location.href = '/uploads/' + filename;
+        }
+    </script>
 </body>
 </html>
