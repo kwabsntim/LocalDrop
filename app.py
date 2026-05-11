@@ -5,10 +5,13 @@ import qrcode
 import io
 import base64
 import os
+import time
 
 
 #this variable determines if the phone is connected or not
 phone_connected=False
+connection_time=None
+CONNECTION_TIMEOUT=300  # 5 minutes
 
 Recieved_links=[]
 
@@ -82,20 +85,37 @@ def hello_world():
     qr_base64=generate_qr_code(data)
     files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
     return render_template('index.html',qr_code_img=qr_base64,files=files)
-
+def add(a, b):
+    return a + b
 #this route is to determine a phone connection
 @app.route("/connect")
 def connect():
-    global phone_connected
+    global phone_connected, connection_time
     phone_connected=True
+    connection_time=time.time()
     return render_template('connect.html')
 
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
 @app.route("/status")
 def status():
+    global phone_connected, connection_time
+    
+    # Check if connection has timed out
+    if phone_connected and connection_time:
+        if time.time() - connection_time > CONNECTION_TIMEOUT:
+            phone_connected = False
+            connection_time = None
+    
     if phone_connected==False:
-        return '',204
-    files=os.listdir(app.config['UPLOAD_FOLDER'])    
+        # Generate fresh QR code for polling
+        data="http://"+get_local_ip()+":3030/connect"
+        qr_base64=generate_qr_code(data)
+        return f'''<div id="main-content">
+                    <p style="color: white; text-align: center; font-size: 1.2rem; margin-bottom: 20px;">Scan the QR Code to connect a device</p>
+                    <img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;" />
+                </div>'''
+    
+    files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
     return render_template('status.html',phone_connected=phone_connected,links=Recieved_links,files=files)
     
 
