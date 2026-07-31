@@ -16,6 +16,11 @@ CONNECTION_TIMEOUT=300  # 5 minutes
 
 Recieved_links=[]
 
+# Track file origin: phone_files = uploaded from phone (shown on desktop)
+#                   desktop_files = uploaded from desktop (shown on phone)
+phone_files=[]
+desktop_files=[]
+
 #importing the config file
 
 env=os.getenv('FLASK_ENV','development')
@@ -24,6 +29,7 @@ app_config=config[env]
 app = Flask(__name__)
 app.config.from_object(app_config)
 app.secret_key='LocalDrop'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 #user functions 
 def get_local_ip():
     '''
@@ -93,8 +99,7 @@ def connect():
     global phone_connected, connection_time
     phone_connected=True
     connection_time=time.time()
-    files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
-    return render_template('connect.html', files=files)
+    return render_template('connect.html', files=desktop_files)
 
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
 @app.route("/status")
@@ -118,25 +123,38 @@ def status():
     
     files=os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
     # Return only the content to be swapped by HTMX, not a full page
-    return render_template('status_content.html',phone_connected=phone_connected,links=Recieved_links,files=files)
+    return render_template('status_content.html',phone_connected=phone_connected,links=Recieved_links,files=phone_files)
     
 
 
 @app.route("/upload",methods=['POST'])
 def upload_file():
+    global phone_files, desktop_files
+    # Detect where the request came from to redirect back correctly
+    referrer = request.referrer or ''
+    came_from_phone = '/connect' in referrer
+
     if 'file' not in request.files:
         flash('No file part')
-        return redirect(request.url)
+        return redirect(request.referrer or '/connect')
     file=request.files['file']
     if file.filename=='':
         flash('No selected file')
-        return redirect(request.url)
+        return redirect(request.referrer or '/connect')
     if file and allowed_file(file.filename):
         filename=secure_filename(file.filename)
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
         flash('File uploaded successfully')
+        # Track which side sent the file
+        if came_from_phone:
+            if filename not in phone_files:
+                phone_files.append(filename)
+        else:
+            if filename not in desktop_files:
+                desktop_files.append(filename)
     
-    return redirect('/status')
+    return redirect('/connect' if came_from_phone else '/status')
 
 
 @app.route("/send_link",methods=['POST'])

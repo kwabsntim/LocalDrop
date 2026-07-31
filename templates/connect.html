@@ -254,13 +254,13 @@
         </div>
 
         <div class="files-section">
-            <div class="files-title">📁 Received Files</div>
+            <div class="files-title">🖥️ Received from Desktop</div>
             {% if files %}
                 <div class="file-grid">
                     {% for file in files %}
                         {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
                         {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
-                        <div class="file-grid-item" onclick="downloadFile('{{ file }}')">
+                        <a href="/uploads/{{ file }}" class="file-grid-item" download style="text-decoration: none;">
                             {% if ext in image_extensions %}
                                 <img src="/uploads/{{ file }}" alt="{{ file }}" class="grid-image">
                             {% elif ext == 'pdf' %}
@@ -275,19 +275,16 @@
                                 <div class="file-icon">{{ ext.upper() or 'FILE' }}</div>
                             {% endif %}
                             <div class="file-name">{{ file }}</div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="empty-state">No files received yet. Send files from desktop to see them here.</div>
+                <div class="empty-state">No files received from desktop yet.</div>
             {% endif %}
         </div>
     </div>
     
     <script>
-        function downloadFile(filename) {
-            window.location.href = '/uploads/' + filename;
-        }
     </script>
 </body>
 </html>

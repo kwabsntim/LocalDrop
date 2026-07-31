@@ -1,9 +1,11 @@
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class Config:
     """Base configuration"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'LocalDrop')
-    UPLOAD_FOLDER = 'uploads'
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'pptx', 'xlsx', 'csv', 'zip', 'rar'}
 
 
