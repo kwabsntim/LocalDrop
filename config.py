@@ -19,7 +19,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    PORT = 3030
+    PORT = 8085
     HOST = '0.0.0.0'
 
 
