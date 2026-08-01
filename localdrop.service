@@ -1,0 +1,18 @@
+[Unit]
+Description=LocalDrop file transfer service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/kwabsntim/Documents/LocalDrop
+Environment="FLASK_ENV=production"
+ExecStart=/home/kwabsntim/Documents/LocalDrop/.venv/bin/gunicorn \
+    --workers 2 \
+    --bind 0.0.0.0:8085 \
+    --access-logfile /home/kwabsntim/Documents/LocalDrop/access.log \
+    --error-logfile /home/kwabsntim/Documents/LocalDrop/error.log \
+    app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

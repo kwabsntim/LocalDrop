@@ -1,0 +1,18 @@
+[2026-08-01 16:01:44 +0000] [11949] [INFO] Starting gunicorn 26.0.0
+[2026-08-01 16:01:44 +0000] [11949] [INFO] Listening at: http://0.0.0.0:8080 (11949)
+[2026-08-01 16:01:44 +0000] [11949] [INFO] Using worker: sync
+[2026-08-01 16:01:44 +0000] [11951] [INFO] Booting worker with pid: 11951
+[2026-08-01 16:01:44 +0000] [11952] [INFO] Booting worker with pid: 11952
+[2026-08-01 16:01:44 +0000] [11949] [INFO] Control socket listening at /run/user/1000/gunicorn.ctl
+[2026-08-01 16:02:52 +0000] [11952] [INFO] Worker exiting (pid: 11952)
+[2026-08-01 16:02:52 +0000] [11949] [INFO] Handling signal: term
+[2026-08-01 16:02:52 +0000] [11951] [INFO] Worker exiting (pid: 11951)
+[2026-08-01 16:02:52 +0000] [11949] [INFO] Worker (pid:11951) was sent SIGTERM!
+[2026-08-01 16:02:52 +0000] [11949] [INFO] Worker (pid:11952) was sent SIGTERM!
+[2026-08-01 16:02:52 +0000] [11949] [INFO] Shutting down: Master
+[2026-08-01 16:02:52 +0000] [12444] [INFO] Starting gunicorn 26.0.0
+[2026-08-01 16:02:52 +0000] [12444] [INFO] Listening at: http://0.0.0.0:8085 (12444)
+[2026-08-01 16:02:52 +0000] [12444] [INFO] Using worker: sync
+[2026-08-01 16:02:52 +0000] [12446] [INFO] Booting worker with pid: 12446
+[2026-08-01 16:02:52 +0000] [12447] [INFO] Booting worker with pid: 12447
+[2026-08-01 16:02:52 +0000] [12444] [INFO] Control socket listening at /run/user/1000/gunicorn.ctl
