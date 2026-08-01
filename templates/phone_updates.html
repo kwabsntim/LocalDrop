@@ -1,0 +1,48 @@
+<div id="phone-received">
+    <div class="files-section">
+        <div class="files-title">🖥️ Received from Desktop</div>
+        {% if files %}
+            <div class="file-grid">
+                {% for file in files %}
+                    {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                    {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
+                    <a href="/uploads/{{ file }}" class="file-grid-item" download style="text-decoration: none;">
+                        {% if ext in image_extensions %}
+                            <img src="/uploads/{{ file }}" alt="{{ file }}" class="grid-image">
+                        {% elif ext == 'pdf' %}
+                            <div class="file-icon pdf-icon">PDF</div>
+                        {% elif ext in ['xlsx', 'xls'] %}
+                            <div class="file-icon excel-icon">XLS</div>
+                        {% elif ext in ['docx', 'doc'] %}
+                            <div class="file-icon word-icon">DOC</div>
+                        {% elif ext == 'pptx' %}
+                            <div class="file-icon pptx-icon">PPT</div>
+                        {% else %}
+                            <div class="file-icon">{{ ext.upper() or 'FILE' }}</div>
+                        {% endif %}
+                        <div class="file-name">{{ file }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">No files received from desktop yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="files-section" style="margin-top: 16px;">
+        <div class="files-title">🔗 Links from Desktop</div>
+        {% if links %}
+            <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px;">
+                {% for link in links %}
+                    <a href="{{ link }}"
+                       style="display: block; color: #4a9eff; font-size: 0.85rem; word-break: break-all;
+                              padding: 8px 12px; background-color: #1e2530; border-radius: 8px;
+                              text-decoration: none;"
+                       target="_blank" rel="noopener">{{ link }}</a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">No links received from desktop yet.</div>
+        {% endif %}
+    </div>
+</div>

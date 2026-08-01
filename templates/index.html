@@ -6,19 +6,151 @@
     <title>LocalDrop</title>
     <script src="https://unpkg.com/htmx.org@latest"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Navbar status badge */
+        #nav-status-wrap {
+            position: absolute;
+            top: 50%;
+            right: 24px;
+            transform: translateY(-50%);
+        }
+        .nav-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4caf50;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px #4caf50;
+            animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Desktop send forms */
+        #desktop-forms {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+            flex-shrink: 0;
+        }
+        .desk-form-card {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .desk-form-card p {
+            margin: 0 0 10px 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .desk-form-card form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .desk-form-card input[type="file"],
+        .desk-form-card input[type="text"] {
+            width: 100%;
+            padding: 9px 12px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 6px;
+            color: #1a1a1a;
+            font-size: 0.88rem;
+            box-sizing: border-box;
+        }
+        .desk-form-card input[type="file"]::file-selector-button {
+            background-color: #333;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .desk-form-card input[type="submit"] {
+            width: 100%;
+            padding: 9px 16px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .desk-form-card input[type="submit"]:hover {
+            background-color: #444;
+        }
+
+        /* Two-column layout when connected: forms left, received right */
+        .connected-layout {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            max-width: 780px;
+            align-items: flex-start;
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #2a2a2a;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+            white-space: nowrap;
+        }
+        #toast.success { border-left: 4px solid #4caf50; }
+        #toast.error   { border-left: 4px solid #f44336; }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
-<!--This is the main template -->
-<body> 
+<body>
     <div class="app-container">
-        <!---Navigation bar-->
         <nav class="top-nav">
             <div class="logo">LocalDrop</div>
+            <!-- Wrapper stays in DOM; inner span is swapped by HTMX -->
+            <div id="nav-status-wrap"
+                 hx-get="/nav_status"
+                 hx-trigger="every 3s"
+                 hx-target="#nav-status-wrap"
+                 hx-swap="innerHTML"></div>
         </nav>
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3>Recent Files</h3>
-                <button class="close-btn mobile-only" onclick="toggleSidebar()">x</button>
+                <button class="close-btn mobile-only" onclick="toggleSidebar()">✕</button>
             </div>
             <div class="sidebar-content">
                 {% if files %}
@@ -54,14 +186,44 @@
 
         <main class="page-center">
             <div class="content">
-                <!--addtion of htmx polling to the site-->
-                <div hx-get="/status" hx-trigger="every 2s" hx-target="#main-content"hx-swap="outerHTML"></div>
-                <div id="main-content">
-                    <p>Scan the QR Code to connect a device</p>
-                    <div class="qr-code" id="qr-container">
-                        <img src="data:image/png;base64,{{ qr_code_img }}">
+
+                <!-- Two-column layout: forms on left, QR/received on right -->
+                <div class="connected-layout">
+
+                    <!-- LEFT: Send forms — always in DOM, never inside poll target -->
+                    <div id="desktop-forms">
+                        <div class="desk-form-card">
+                            <p>📤 Send File to Phone</p>
+                            <form action="/upload" method="post" enctype="multipart/form-data">
+                                <input type="file" name="file" required>
+                                <input type="submit" value="Send">
+                            </form>
+                        </div>
+                        <div class="desk-form-card">
+                            <p>🔗 Send Link to Phone</p>
+                            <form action="/send_link" method="post">
+                                <input type="text" name="link" placeholder="Enter URL" required>
+                                <input type="submit" value="Send">
+                            </form>
+                        </div>
                     </div>
+
+                    <!-- RIGHT: QR code before connect, received files+links after -->
+                    <div style="flex: 1; min-width: 0;">
+                        <div hx-get="/status"
+                             hx-trigger="every 2s"
+                             hx-target="#main-content"
+                             hx-swap="outerHTML"></div>
+                        <div id="main-content">
+                            <p>Scan the QR Code to connect a device</p>
+                            <div class="qr-code" id="qr-container">
+                                <img src="data:image/png;base64,{{ qr_code_img }}">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
             </div>
         </main>
 
@@ -70,6 +232,9 @@
         </footer>
     </div>
 
+    <!-- Toast notification -->
+    <div id="toast"></div>
+
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -77,6 +242,39 @@
             sidebar.classList.toggle('open');
             overlay.classList.toggle('open');
         }
+
+        // Toast helper
+        let toastTimer;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Intercept all forms inside #desktop-forms and submit via fetch
+        document.getElementById('desktop-forms').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                const data = await res.json();
+                showToast(data.message, data.ok ? 'success' : 'error');
+                if (data.ok) {
+                    form.reset(); // clear the input after success
+                }
+            } catch (err) {
+                showToast('Something went wrong', 'error');
+            }
+        });
     </script>
 </body>
 </html>

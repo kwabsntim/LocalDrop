@@ -14,7 +14,8 @@ phone_connected=False
 connection_time=None
 CONNECTION_TIMEOUT=300  # 5 minutes
 
-Recieved_links=[]
+Recieved_links=[]      # links sent from phone → shown on desktop
+desktop_links=[]       # links sent from desktop → shown on phone
 
 # Track file origin: phone_files = uploaded from phone (shown on desktop)
 #                   desktop_files = uploaded from desktop (shown on phone)
@@ -99,7 +100,18 @@ def connect():
     global phone_connected, connection_time
     phone_connected=True
     connection_time=time.time()
-    return render_template('connect.html', files=desktop_files)
+    return render_template('connect.html', files=desktop_files, links=desktop_links)
+
+@app.route("/nav_status")
+def nav_status():
+    global phone_connected, connection_time
+    if phone_connected and connection_time:
+        if time.time() - connection_time > CONNECTION_TIMEOUT:
+            phone_connected = False
+            connection_time = None
+    if phone_connected:
+        return '<span class="nav-badge"><span class="nav-dot"></span>Active</span>'
+    return ''
 
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
 @app.route("/status")
@@ -130,43 +142,66 @@ def status():
 @app.route("/upload",methods=['POST'])
 def upload_file():
     global phone_files, desktop_files
-    # Detect where the request came from to redirect back correctly
     referrer = request.referrer or ''
     came_from_phone = '/connect' in referrer
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.referrer or '/connect')
-    file=request.files['file']
-    if file.filename=='':
-        flash('No selected file')
-        return redirect(request.referrer or '/connect')
-    if file and allowed_file(file.filename):
-        filename=secure_filename(file.filename)
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
-        flash('File uploaded successfully')
-        # Track which side sent the file
-        if came_from_phone:
-            if filename not in phone_files:
-                phone_files.append(filename)
-        else:
-            if filename not in desktop_files:
-                desktop_files.append(filename)
-    
-    return redirect('/connect' if came_from_phone else '/status')
+    if 'file' not in request.files or request.files['file'].filename == '':
+        if is_ajax:
+            return {'ok': False, 'message': 'No file selected'}, 400
+        return redirect(referrer or '/')
+
+    file = request.files['file']
+    if not allowed_file(file.filename):
+        if is_ajax:
+            return {'ok': False, 'message': 'File type not allowed'}, 400
+        return redirect(referrer or '/')
+
+    filename = secure_filename(file.filename)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    if came_from_phone:
+        if filename not in phone_files:
+            phone_files.append(filename)
+    else:
+        if filename not in desktop_files:
+            desktop_files.append(filename)
+
+    if is_ajax:
+        msg = 'File sent to desktop!' if came_from_phone else 'File sent to phone!'
+        return {'ok': True, 'message': msg}
+    return redirect('/connect' if came_from_phone else '/')
 
 
 @app.route("/send_link",methods=['POST'])
 def send_link():
-    if 'link' not in request.form:
-        flash('No link provided')
-        return redirect(request.url)
-    link = request.form['link']
-    global Recieved_links
-    Recieved_links.append(link)
-    return redirect('/status')
+    global Recieved_links, desktop_links
+    referrer = request.referrer or ''
+    came_from_phone = '/connect' in referrer
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
+    if 'link' not in request.form or not request.form['link'].strip():
+        if is_ajax:
+            return {'ok': False, 'message': 'No link provided'}, 400
+        return redirect(referrer or '/')
+
+    link = request.form['link'].strip()
+    if came_from_phone:
+        Recieved_links.append(link)
+    else:
+        desktop_links.append(link)
+
+    if is_ajax:
+        msg = 'Link sent to desktop!' if came_from_phone else 'Link sent to phone!'
+        return {'ok': True, 'message': msg}
+    return redirect('/connect' if came_from_phone else '/')
+
+
+@app.route("/phone_updates")
+def phone_updates():
+    '''Returns just the received files + links sections for the phone to poll'''
+    return render_template('phone_updates.html', files=desktop_files, links=desktop_links)
 
 @app.route("/updates_status")
 def update_status():

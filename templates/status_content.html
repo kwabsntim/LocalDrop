@@ -1,255 +1,147 @@
 {% if phone_connected %}
-<div id="main-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 20px;">
+<div id="main-content" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 16px;">
     <style>
-        .status-header {
-            text-align: center;
-        }
-
-        .status-header h2 {
-            color: #4caf50;
-            margin: 0 0 10px 0;
-            font-size: 1.5rem;
-        }
-
-        .status-header p {
-            color: #999;
-            margin: 0;
-            font-size: 0.9rem;
-        }
-
-        .status-forms-container {
+        .received-section {
             background-color: #1a1a1a;
             border-radius: 12px;
-            padding: 20px;
-            max-width: 500px;
+            padding: 16px 18px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-
-        .status-form-group {
-            margin-bottom: 20px;
-        }
-
-        .status-form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .status-form-group p {
-            font-size: 1rem;
+        .received-section-title {
+            font-size: 0.92rem;
             font-weight: 600;
             margin: 0 0 12px 0;
-            color: white;
-        }
-
-        .status-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .status-form input[type="file"],
-        .status-form input[type="text"] {
-            padding: 12px 14px;
-            background-color: white;
-            border: 2px solid #333;
-            border-radius: 6px;
-            color: #1a1a1a;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .status-form input[type="file"]:focus,
-        .status-form input[type="text"]:focus {
-            outline: none;
-            border-color: #555;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        }
-
-        .status-form input[type="file"]::file-selector-button {
-            background-color: #333;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-right: 10px;
-            transition: background-color 0.2s ease;
-        }
-
-        .status-form input[type="file"]::file-selector-button:hover {
-            background-color: #444;
-        }
-
-        .status-form input[type="submit"] {
-            padding: 12px 16px;
-            background-color: #333;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .status-form input[type="submit"]:hover {
-            background-color: #444;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .status-form input[type="submit"]:active {
-            transform: translateY(0);
-        }
-
-        .received-files-section {
-            background-color: #1a1a1a;
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .received-files-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 0 0 15px 0;
             color: #fff;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 8px;
         }
-
-        .received-file-grid {
+        .recv-file-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 10px;
         }
-
-        .received-file-item {
+        .recv-file-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
             background-color: #252525;
             border-radius: 8px;
-            padding: 10px 6px;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            min-height: 100px;
+            padding: 8px 6px;
             text-decoration: none;
+            transition: background-color 0.2s, transform 0.2s;
+            min-height: 90px;
         }
-
-        .received-file-item:hover {
-            background-color: #2a2a2a;
+        .recv-file-item:hover {
+            background-color: #2e2e2e;
             transform: scale(1.05);
         }
-
-        .received-grid-image {
+        .recv-grid-image {
             width: 100%;
-            height: 60px;
+            height: 55px;
             object-fit: cover;
             border-radius: 4px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-
-        .received-file-icon {
-            width: 44px;
-            height: 44px;
+        .recv-file-icon {
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #1a1a1a;
             border-radius: 4px;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 600;
             color: #888;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-
-        .received-file-icon.pdf  { background-color: #2a1a1a; color: #f44236; }
-        .received-file-icon.xls  { background-color: #1a2a1a; color: #4caf50; }
-        .received-file-icon.doc  { background-color: #1a1f2a; color: #2196f3; }
-        .received-file-icon.ppt  { background-color: #2a1a1f; color: #ff9800; }
-
-        .received-file-name {
-            font-size: 0.7rem;
+        .recv-file-icon.pdf { background-color: #2a1a1a; color: #f44236; }
+        .recv-file-icon.xls { background-color: #1a2a1a; color: #4caf50; }
+        .recv-file-icon.doc { background-color: #1a1f2a; color: #2196f3; }
+        .recv-file-icon.ppt { background-color: #2a1a1f; color: #ff9800; }
+        .recv-file-name {
+            font-size: 0.68rem;
             text-align: center;
             color: #aaa;
             word-break: break-word;
             width: 100%;
         }
-
-        .received-empty {
+        .recv-empty {
             text-align: center;
-            color: #666;
-            padding: 20px;
-            font-size: 0.85rem;
+            color: #555;
+            padding: 14px 0;
+            font-size: 0.82rem;
         }
-
-        @media (max-width: 768px) {
-            .status-forms-container,
-            .received-files-section {
-                max-width: 100%;
-            }
+        .recv-links-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .recv-link-item {
+            display: block;
+            color: #4a9eff;
+            font-size: 0.82rem;
+            word-break: break-all;
+            padding: 6px 10px;
+            background-color: #1e2530;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .recv-link-item:hover {
+            background-color: #253040;
         }
     </style>
 
-    <div class="status-header">
-        <h2>✓ Device Connected</h2>
-        <p>Ready to transfer files</p>
-    </div>
-    
-    <div class="status-forms-container">
-        <div class="status-form-group">
-            <p>📤 Send File</p>
-            <form class="status-form" action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" required>
-                <input type="submit" value="Upload">
-            </form>
-        </div>
-
-        <div class="status-form-group">
-            <p>🔗 Send Link</p>
-            <form class="status-form" action="/send_link" method="post">
-                <input type="text" name="link" placeholder="Enter URL" required>
-                <input type="submit" value="Send">
-            </form>
-        </div>
-    </div>
-
-    <div class="received-files-section">
-        <div class="received-files-title">📱 Received from Phone</div>
+    <!-- Files received from phone -->
+    <div class="received-section">
+        <div class="received-section-title">📱 Received from Phone</div>
         {% if files %}
-            <div class="received-file-grid">
+            <div class="recv-file-grid">
                 {% for file in files %}
                     {% set image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
                     {% set ext = file.rsplit('.', 1)[1].lower() if '.' in file else '' %}
-                    <a href="/uploads/{{ file }}" class="received-file-item" download>
+                    <a href="/uploads/{{ file }}" class="recv-file-item" download>
                         {% if ext in image_extensions %}
-                            <img src="/uploads/{{ file }}" alt="{{ file }}" class="received-grid-image">
+                            <img src="/uploads/{{ file }}" alt="{{ file }}" class="recv-grid-image">
                         {% elif ext == 'pdf' %}
-                            <div class="received-file-icon pdf">PDF</div>
+                            <div class="recv-file-icon pdf">PDF</div>
                         {% elif ext in ['xlsx', 'xls'] %}
-                            <div class="received-file-icon xls">XLS</div>
+                            <div class="recv-file-icon xls">XLS</div>
                         {% elif ext in ['docx', 'doc'] %}
-                            <div class="received-file-icon doc">DOC</div>
+                            <div class="recv-file-icon doc">DOC</div>
                         {% elif ext == 'pptx' %}
-                            <div class="received-file-icon ppt">PPT</div>
+                            <div class="recv-file-icon ppt">PPT</div>
                         {% else %}
-                            <div class="received-file-icon">{{ ext.upper() or 'FILE' }}</div>
+                            <div class="recv-file-icon">{{ ext.upper() or 'FILE' }}</div>
                         {% endif %}
-                        <div class="received-file-name">{{ file }}</div>
+                        <div class="recv-file-name">{{ file }}</div>
                     </a>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="received-empty">No files received from phone yet.</div>
+            <div class="recv-empty">No files received from phone yet.</div>
+        {% endif %}
+    </div>
+
+    <!-- Links received from phone -->
+    <div class="received-section">
+        <div class="received-section-title">🔗 Links from Phone</div>
+        {% if links %}
+            <div class="recv-links-list">
+                {% for link in links %}
+                    <a href="{{ link }}" class="recv-link-item" target="_blank" rel="noopener">{{ link }}</a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="recv-empty">No links received from phone yet.</div>
         {% endif %}
     </div>
 </div>
 {% else %}
 <div id="main-content">
-    <p style="color: white; text-align: center; font-size: 1.2rem; margin-bottom: 20px;">Scan the QR Code to connect a device</p>
+    <p style="color: white; text-align: center; font-size: 1.1rem; margin-bottom: 20px;">Scan the QR Code to connect a device</p>
 </div>
 {% endif %}
