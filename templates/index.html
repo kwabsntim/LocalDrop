@@ -22,6 +22,47 @@
             font-weight: 600;
             color: #4caf50;
         }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            margin-left: 6px;
+            cursor: pointer;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background-color: #4caf50;
+            border-radius: 20px;
+            transition: background 0.25s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 3px;
+            background-color: #fff;
+            border-radius: 50%;
+            transition: transform 0.25s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #4caf50;
+        }
+        .toggle-switch input:not(:checked) + .toggle-slider {
+            background-color: #555;
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(16px);
+        }
         .nav-dot {
             width: 8px;
             height: 8px;
@@ -193,14 +234,20 @@
                     <!-- LEFT: Send forms — always in DOM, never inside poll target -->
                     <div id="desktop-forms">
                         <div class="desk-form-card">
-                            <p>📤 Send File to Phone</p>
+                            <p>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                Send File to Phone
+                            </p>
                             <form action="/upload" method="post" enctype="multipart/form-data">
                                 <input type="file" name="file" required>
                                 <input type="submit" value="Send">
                             </form>
                         </div>
                         <div class="desk-form-card">
-                            <p>🔗 Send Link to Phone</p>
+                            <p>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                Send Link to Phone
+                            </p>
                             <form action="/send_link" method="post">
                                 <input type="text" name="link" placeholder="Enter URL" required>
                                 <input type="submit" value="Send">
@@ -210,11 +257,10 @@
 
                     <!-- RIGHT: QR code before connect, received files+links after -->
                     <div style="flex: 1; min-width: 0;">
-                        <div hx-get="/status"
+                        <div id="main-content"
+                             hx-get="/status"
                              hx-trigger="every 2s"
-                             hx-target="#main-content"
-                             hx-swap="outerHTML"></div>
-                        <div id="main-content">
+                             hx-swap="outerHTML">
                             <p>Scan the QR Code to connect a device</p>
                             <div class="qr-code" id="qr-container">
                                 <img src="data:image/png;base64,{{ qr_code_img }}">

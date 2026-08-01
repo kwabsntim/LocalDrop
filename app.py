@@ -12,6 +12,7 @@ from config import config
 #this variable determines if the phone is connected or not
 phone_connected=False
 connection_time=None
+manually_disconnected=False  # blocks polling from auto-reconnecting
 CONNECTION_TIMEOUT=300  # 5 minutes
 
 Recieved_links=[]      # links sent from phone → shown on desktop
@@ -97,10 +98,19 @@ def add(a, b):
 #this route is to determine a phone connection
 @app.route("/connect")
 def connect():
-    global phone_connected, connection_time
+    global phone_connected, connection_time, manually_disconnected
     phone_connected=True
     connection_time=time.time()
+    manually_disconnected=False
     return render_template('connect.html', files=desktop_files, links=desktop_links)
+
+@app.route("/disconnect", methods=['POST'])
+def disconnect():
+    global phone_connected, connection_time, manually_disconnected
+    phone_connected = False
+    connection_time = None
+    manually_disconnected = True
+    return '', 204
 
 @app.route("/nav_status")
 def nav_status():
@@ -110,7 +120,16 @@ def nav_status():
             phone_connected = False
             connection_time = None
     if phone_connected:
-        return '<span class="nav-badge"><span class="nav-dot"></span>Active</span>'
+        return '''<span class="nav-badge">
+            <span class="nav-dot"></span>Active
+            <label class="toggle-switch" title="Disconnect device">
+                <input type="checkbox" checked
+                       hx-post="/disconnect"
+                       hx-swap="none"
+                       hx-trigger="change">
+                <span class="toggle-slider"></span>
+            </label>
+        </span>'''
     return ''
 
 #the status route is the laptops transfer page and it also checks if the phone is connected or not and updates the page accordingly
@@ -128,7 +147,10 @@ def status():
         # Generate fresh QR code for polling
         data="http://"+get_local_ip()+":"+str(app_config.PORT)+"/connect"
         qr_base64=generate_qr_code(data)
-        return f'''<div id="main-content">
+        return f'''<div id="main-content"
+                    hx-get="/status"
+                    hx-trigger="every 2s"
+                    hx-swap="outerHTML">
                     <p style="color: white; text-align: center; font-size: 1.2rem; margin-bottom: 20px;">Scan the QR Code to connect a device</p>
                     <img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;" />
                 </div>'''
@@ -201,6 +223,11 @@ def send_link():
 @app.route("/phone_updates")
 def phone_updates():
     '''Returns just the received files + links sections for the phone to poll'''
+    global phone_connected, connection_time, manually_disconnected
+    # Only keep connection alive if it wasn't manually disconnected
+    if not manually_disconnected:
+        phone_connected = True
+        connection_time = time.time()
     return render_template('phone_updates.html', files=desktop_files, links=desktop_links)
 
 @app.route("/updates_status")
