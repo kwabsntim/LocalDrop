@@ -130,3 +130,18 @@ If the phone does not make a request for 5 minutes, the connection is considered
 ## Browser Support
 
 Chrome, Firefox, Safari, Edge — desktop and mobile.
+
+## Features to be Shipped
+
+- **Copy-to-clipboard on received links** — a copy button next to each link instead of just a plain anchor
+- **File deletion** — remove individual files from the received section and from disk
+- **Duplicate filename handling** — prevent silent overwrites by appending a counter on conflict e.g. `photo_1.jpg`
+- **Persist data across restarts** — use SQLite to store filenames and links so history survives server restarts
+- **File size and timestamp on file cards** — show metadata under each file in the received section
+- **Upload progress indicator** — progress bar feedback while large files are uploading
+- **Download all as ZIP** — one button to bundle everything received into a single zip download
+- **PIN protection for /connect** — passphrase check on the phone page so only the QR scanner can access it
+- **Rate limiting on uploads** — cap upload requests per IP to prevent disk flooding
+- **Multi-device support** — session model allowing multiple phones to connect with isolated send/receive queues
+- **Browser notifications on desktop** — Web Notifications API alert when a file or link arrives from the phone
+- **Auto-clear old files** — automatically delete files from `uploads/` after a configurable number of days
